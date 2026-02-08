@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台麻計分板</title>
+    <title>台麻計分板 Pro</title>
     <style>
         :root {
             --primary-color: #2E7D32;
@@ -76,7 +76,7 @@
             box-shadow: 0 2px 4px rgba(211, 47, 47, 0.4);
         }
 
-        /* 連莊控制器 (新增) */
+        /* 連莊控制器 */
         .lien-control {
             display: none; /* 預設隱藏 */
             justify-content: center; align-items: center; gap: 5px;
@@ -149,7 +149,7 @@
 </head>
 <body>
 
-    <h1>🀄 台麻計分板 </h1>
+    <h1>🀄 台麻計分板</h1>
 
     <div class="section-card">
         <div class="settings-grid">
@@ -186,7 +186,7 @@
             </div>
 
             <div>
-                <label>台數 (不用記錄莊家以及連莊台數)</label>
+                <label>台數 (輸入牌型台數即可)</label>
                 <div style="display: flex; gap: 10px;">
                     <input type="number" id="taiCount" placeholder="0" inputmode="numeric" style="flex: 1;">
                     <button class="btn-type" style="flex:0 0 auto; background:#607D8B; color:white; border:none;" onclick="openModal()">📖 表</button>
@@ -225,8 +225,8 @@
 <script>
     // 資料初始
     let players = [ { name: "東", score: 0 }, { name: "南", score: 0 }, { name: "西", score: 0 }, { name: "北", score: 0 } ];
-    let dealerIndex = 0; // 預設第一位是莊家
-    let lienCount = 0;   // 連莊計數器
+    let dealerIndex = 0; 
+    let lienCount = 0;   
     let currentWinType = 'discard';
 
     function init() {
@@ -236,22 +236,22 @@
         updateDealerRuleText(); 
     }
 
-    // 設定莊家 (無彈窗)
+    // 設定莊家
     function setDealer(index) {
         if (dealerIndex !== index) {
             dealerIndex = index;
-            lienCount = 0; // 換人做莊，連莊歸零
+            lienCount = 0;
             renderPlayers();
-            updateSelectOptions(); // 更新名字後方的 (莊)
+            updateSelectOptions();
         }
     }
 
-    // 調整連莊數 (無彈窗)
+    // 調整連莊數
     function modifyLien(delta) {
         lienCount += delta;
         if (lienCount < 0) lienCount = 0;
-        renderPlayers(); // 重新渲染以更新數字
-        updateDealerRuleText(); // 更新提示文字
+        renderPlayers();
+        updateDealerRuleText();
     }
 
     function renderPlayers() {
@@ -261,7 +261,6 @@
             let scoreClass = p.score >= 0 ? 'score-positive' : 'score-negative';
             let isDealer = (index === dealerIndex) ? 'is-dealer' : '';
             
-            // 只有莊家顯示連莊控制器
             let lienHtml = '';
             if (index === dealerIndex) {
                 lienHtml = `
@@ -271,29 +270,22 @@
                     <button class="btn-mini" onclick="modifyLien(1)">+</button>
                 </div>`;
             } else {
-                lienHtml = `<div style="height: 29px;"></div>`; // 佔位，保持排版整齊
+                lienHtml = `<div style="height: 29px;"></div>`; 
             }
 
             container.innerHTML += `
                 <div class="player-card ${isDealer}">
                     <div class="dealer-badge" onclick="setDealer(${index})">莊</div>
-                    
                     <input type="text" class="player-name-input" value="${p.name}" 
                            onchange="updateName(${index}, this.value)">
-                    
                     ${lienHtml}
-                    
                     <div class="player-score ${scoreClass}">${p.score}</div>
                 </div>`;
         });
-        // 這裡不呼叫 updateSelectOptions 以免打字時失焦重繪導致輸入中斷
-        // 但我們會在 onchange 觸發
     }
 
     function updateName(index, newName) { 
         players[index].name = newName; 
-        // 這裡不需要重新 renderPlayers，因為 input 值已經變了
-        // 但需要更新下拉選單
         updateSelectOptions();
     }
 
@@ -329,6 +321,13 @@
         const dealerExtra = 1 + (2 * lienCount);
         const dealerName = players[dealerIndex].name;
         
+        let msg = "";
+        if (currentWinType === 'selfdraw') {
+            msg = `提示：若閒家自摸，${dealerName} 多付 ${dealerExtra} 台；若 ${dealerName} 自摸，三家多付 ${dealerExtra} 台。`;
+        } else {
+            msg = `提示：若 ${dealerName} 胡牌或放槍，自動多算 ${dealerExtra} 台 (莊1+連${lienCount*2})。`;
+        }
+        txt.innerText = msg;
     }
 
     function calculateScore() {
@@ -341,14 +340,13 @@
 
         let logMessage = "";
         let totalWinAmount = 0;
+        let confirmMsg = ""; // 用於彈出視窗的訊息
         
         // 莊家台數 = 1 + (2 * 連莊數)
         const dealerExtraTai = 1 + (2 * lienCount);
 
         // 計算單筆交易金額
-        // isDealerInvolved: 該筆交易是否有莊家參與
         const calculatePayment = (tai, isDealerInvolved) => {
-            // 如果有莊家參與，台數 + 莊家台(含連莊)
             let finalTai = isDealerInvolved ? (tai + dealerExtraTai) : tai;
             return base + (finalTai * taiValue);
         };
@@ -358,11 +356,21 @@
             const loserIdx = parseInt(document.getElementById('loserSelect').value);
             if (winnerIdx === loserIdx) { alert("贏家與輸家不能同一人"); return; }
 
-            // 判斷莊家是否捲入 (贏家是莊 OR 輸家是莊)
             let isDealerInvolved = (winnerIdx === dealerIndex || loserIdx === dealerIndex);
-            
             let amount = calculatePayment(inputTai, isDealerInvolved);
+
+            // 準備確認訊息
+            confirmMsg = `【胡牌結算】\n\n`;
+            confirmMsg += `贏家：${players[winnerIdx].name}\n`;
+            confirmMsg += `放槍：${players[loserIdx].name}\n`;
+            confirmMsg += `台數：${inputTai} 台`;
+            if (isDealerInvolved) confirmMsg += ` (+莊連${lienCount} / 共${inputTai + dealerExtraTai}台)`;
+            confirmMsg += `\n\n💰 金額：$${amount}`;
             
+            // 彈出確認視窗
+            if(!confirm(confirmMsg)) return; // 使用者按取消
+
+            // 更新分數
             players[winnerIdx].score += amount;
             players[loserIdx].score -= amount;
 
@@ -373,12 +381,33 @@
             // --- 自摸 ---
             let detailLog = [];
             
-            players.forEach((p, loserIdx) => {
-                if (loserIdx === winnerIdx) return; // 跳過自己
+            // 準備確認訊息
+            confirmMsg = `【自摸結算】\n\n`;
+            confirmMsg += `贏家：${players[winnerIdx].name}\n`;
+            confirmMsg += `台數：${inputTai} 台\n\n`;
 
-                // 判斷這兩人的交易是否有莊家
+            // 預先計算以顯示在確認視窗
+            let tempTotalWin = 0;
+            players.forEach((p, loserIdx) => {
+                if (loserIdx === winnerIdx) return;
                 let isDealerInvolved = (winnerIdx === dealerIndex || loserIdx === dealerIndex);
+                let amount = calculatePayment(inputTai, isDealerInvolved);
+                tempTotalWin += amount;
                 
+                confirmMsg += `${p.name} 付：$${amount}`;
+                if (isDealerInvolved) confirmMsg += ` (含莊)`;
+                confirmMsg += `\n`;
+            });
+            confirmMsg += `\n💰 總收：$${tempTotalWin}`;
+
+            // 彈出確認視窗
+            if(!confirm(confirmMsg)) return; // 使用者按取消
+
+            // 確認後正式執行扣款
+            players.forEach((p, loserIdx) => {
+                if (loserIdx === winnerIdx) return;
+
+                let isDealerInvolved = (winnerIdx === dealerIndex || loserIdx === dealerIndex);
                 let amount = calculatePayment(inputTai, isDealerInvolved);
                 
                 p.score -= amount;
@@ -391,6 +420,11 @@
             
             let extraText = (detailLog.length > 0) ? ` (含莊連${lienCount})` : "";
             logMessage = `${players[winnerIdx].name} 自摸 ${inputTai}台${extraText}, 總收: ${totalWinAmount}`;
+        }
+
+        // 觸覺回饋 (震動)
+        if (navigator.vibrate) {
+            navigator.vibrate(50); // 震動 50 毫秒
         }
 
         renderPlayers();
