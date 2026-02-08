@@ -113,6 +113,17 @@
         }
         .btn-type.active { background: var(--primary-color); color: white; }
 
+        /* 新增：台數調整按鈕樣式 */
+        .btn-adjust {
+            width: 45px; /* 按鈕寬度 */
+            border: 1px solid #ccc; background: #fff;
+            color: var(--primary-color); border-radius: 8px;
+            font-size: 1.5em; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            padding: 0;
+        }
+        .btn-adjust:active { background-color: #eee; }
+
         .btn-submit {
             width: 100%; padding: 15px; background: var(--primary-color); color: white;
             border: none; border-radius: 8px; font-size: 1.2em; cursor: pointer;
@@ -186,10 +197,12 @@
             </div>
 
             <div>
-                <label>台數 (輸入牌型台數即可)</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="number" id="taiCount" placeholder="0" inputmode="numeric" style="flex: 1;">
-                    <button class="btn-type" style="flex:0 0 auto; background:#607D8B; color:white; border:none;" onclick="openModal()">📖 表</button>
+                <label>台數 (輸入牌型台數)</label>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-adjust" onclick="modifyTai(-1)">-</button>
+                    <input type="number" id="taiCount" placeholder="0" inputmode="numeric" style="flex: 1; text-align:center;">
+                    <button class="btn-adjust" onclick="modifyTai(1)">+</button>
+                    <button class="btn-type" style="flex:0 0 auto; width:50px; background:#607D8B; color:white; border:none; padding:0;" onclick="openModal()">📖</button>
                 </div>
                 <small style="color:#d32f2f; font-weight:bold; display:block; margin-top:5px;" id="dealerRuleText"></small>
             </div>
@@ -252,6 +265,15 @@
         if (lienCount < 0) lienCount = 0;
         renderPlayers();
         updateDealerRuleText();
+    }
+
+    // 新增：調整台數 (+/-)
+    function modifyTai(delta) {
+        const input = document.getElementById('taiCount');
+        let val = parseInt(input.value) || 0;
+        val += delta;
+        if(val < 0) val = 0; // 不允許負台數
+        input.value = val;
     }
 
     function renderPlayers() {
@@ -422,9 +444,9 @@
             logMessage = `${players[winnerIdx].name} 自摸 ${inputTai}台${extraText}, 總收: ${totalWinAmount}`;
         }
 
-        // 觸覺回饋 (震動)
+        // 觸覺回饋
         if (navigator.vibrate) {
-            navigator.vibrate(50); // 震動 50 毫秒
+            navigator.vibrate(50);
         }
 
         renderPlayers();
