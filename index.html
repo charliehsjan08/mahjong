@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台麻計分板 Pro</title>
+    <title>台麻計分板 (存檔版)</title>
     <style>
         :root {
             --primary-color: #2E7D32;
-            --dealer-color: #d32f2f; /* 莊家紅 */
+            --dealer-color: #d32f2f;
             --bg-color: #f4f4f9;
             --text-color: #333;
             --card-bg: #fff;
@@ -15,119 +15,99 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             max-width: 600px;
             margin: 0 auto;
             padding-bottom: 80px;
         }
 
-        h1 { text-align: center; color: var(--primary-color); margin-bottom: 20px; }
+        /* 頂部導航列 */
+        .nav-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; background: white; padding: 10px;
+            border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .nav-title { font-weight: bold; color: var(--primary-color); font-size: 1.1em; }
+        .game-id { font-size: 0.8em; color: #888; margin-top: 2px;}
+        .btn-menu {
+            background: #f0f0f0; border: none; padding: 8px 12px;
+            border-radius: 6px; cursor: pointer; font-size: 0.9em;
+        }
 
+        /* 區塊樣式 */
         .section-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            background: var(--card-bg); border-radius: 12px; padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;
         }
 
         .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
         label { display: block; font-size: 0.9em; margin-bottom: 5px; font-weight: bold; }
-        
-        input[type="number"], input[type="text"], select {
+        input, select {
             width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;
             box-sizing: border-box; font-size: 1em; background: white;
         }
 
-        /* 玩家區域 */
+        /* 玩家卡片 */
         .players-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        
         .player-card {
             background: var(--card-bg); padding: 10px; border-radius: 10px;
             text-align: center; border-left: 5px solid #ccc;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            position: relative;
-            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative;
             display: flex; flex-direction: column; justify-content: center;
         }
-
-        /* 莊家樣式 */
-        .player-card.is-dealer {
-            border-left: 5px solid var(--dealer-color);
-            background-color: #fff5f5;
-        }
-
-        /* 莊家按鈕 */
-        .dealer-badge {
-            position: absolute; top: 8px; left: 8px;
-            width: 24px; height: 24px; line-height: 24px;
-            border-radius: 50%; background: #eee; color: #aaa;
-            font-weight: bold; cursor: pointer; font-size: 0.8em;
-            border: 2px solid transparent;
-        }
+        .player-card.is-dealer { border-left-color: var(--dealer-color); background-color: #fff5f5; }
         
-        .player-card.is-dealer .dealer-badge {
-            background: var(--dealer-color); color: white;
-            box-shadow: 0 2px 4px rgba(211, 47, 47, 0.4);
+        .dealer-badge {
+            position: absolute; top: 8px; left: 8px; width: 24px; height: 24px;
+            line-height: 24px; border-radius: 50%; background: #eee; color: #aaa;
+            font-weight: bold; cursor: pointer; font-size: 0.8em;
         }
+        .player-card.is-dealer .dealer-badge { background: var(--dealer-color); color: white; }
 
-        /* 連莊控制器 */
         .lien-control {
-            display: none; /* 預設隱藏 */
-            justify-content: center; align-items: center; gap: 5px;
+            display: none; justify-content: center; align-items: center; gap: 5px;
             margin-top: 5px; font-weight: bold; color: var(--dealer-color);
         }
-        .player-card.is-dealer .lien-control { display: flex; } /* 莊家才顯示 */
+        .player-card.is-dealer .lien-control { display: flex; }
 
         .btn-mini {
             width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--dealer-color);
-            background: white; color: var(--dealer-color); font-size: 1.1em; line-height: 20px;
-            cursor: pointer; padding: 0;
+            background: white; color: var(--dealer-color); font-size: 1.1em;
+            line-height: 20px; cursor: pointer; padding: 0;
         }
 
-        /* 分數與名字 */
         .player-name-input {
             text-align:center; border:none; background:transparent; 
             font-weight:bold; font-size:1.1em; width:100%; margin-top: 15px; margin-bottom: 2px;
-            padding: 2px;
         }
-        .player-name-input:focus { border-bottom: 1px solid #999; outline: none; }
-
         .player-score { font-size: 1.5em; font-family: monospace; font-weight: bold; margin-top: 5px;}
         .score-positive { color: var(--win-color); }
         .score-negative { color: var(--dealer-color); }
 
+        /* 操作按鈕 */
         .action-form { display: flex; flex-direction: column; gap: 15px; }
-
         .btn-group { display: flex; gap: 10px; }
-        
         .btn-type {
             flex: 1; padding: 10px; border: 2px solid var(--primary-color);
             background: transparent; color: var(--primary-color); border-radius: 8px;
-            cursor: pointer; font-weight: bold;
+            font-weight: bold; cursor: pointer;
         }
         .btn-type.active { background: var(--primary-color); color: white; }
-
-        /* 新增：台數調整按鈕樣式 */
+        
         .btn-adjust {
-            width: 45px; /* 按鈕寬度 */
-            border: 1px solid #ccc; background: #fff;
-            color: var(--primary-color); border-radius: 8px;
-            font-size: 1.5em; cursor: pointer;
-            display: flex; justify-content: center; align-items: center;
-            padding: 0;
+            width: 45px; border: 1px solid #ccc; background: #fff;
+            color: var(--primary-color); border-radius: 8px; font-size: 1.5em;
+            display: flex; justify-content: center; align-items: center; padding: 0;
         }
-        .btn-adjust:active { background-color: #eee; }
 
         .btn-submit {
             width: 100%; padding: 15px; background: var(--primary-color); color: white;
-            border: none; border-radius: 8px; font-size: 1.2em; cursor: pointer;
-            font-weight: bold; box-shadow: 0 4px 6px rgba(46, 125, 50, 0.3);
+            border: none; border-radius: 8px; font-size: 1.2em; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(46, 125, 50, 0.3); cursor: pointer;
         }
         .btn-submit:active { transform: scale(0.98); }
 
@@ -138,18 +118,28 @@
         }
         .history-details { color: #666; font-size: 0.8em; }
 
-        /* Modal */
+        /* Modal 通用 */
         .modal {
             display: none; position: fixed; z-index: 100; left: 0; top: 0;
-            width: 100%; height: 100%; overflow: auto;
-            background-color: rgba(0,0,0,0.5);
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);
         }
         .modal-content {
             background-color: #fefefe; margin: 10% auto; padding: 20px;
-            border: 1px solid #888; width: 90%; max-width: 500px;
-            border-radius: 12px;
+            border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 12px;
         }
         .close-btn { float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+
+        /* 戰局列表樣式 */
+        .session-list { list-style: none; padding: 0; }
+        .session-item {
+            padding: 12px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .session-info { flex: 1; }
+        .session-title { font-weight: bold; display: block; }
+        .session-date { font-size: 0.8em; color: #888; }
+        .btn-load { background: var(--primary-color); color: white; border: none; padding: 5px 10px; border-radius: 4px; margin-right: 5px; cursor: pointer;}
+        .btn-del { background: #d32f2f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;}
         
         /* Table */
         .tai-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -160,22 +150,28 @@
 </head>
 <body>
 
-    <h1>🀄 台麻計分板</h1>
+    <div class="nav-bar">
+        <div>
+            <div class="nav-title" id="displayGameName">未命名戰局</div>
+            <div class="game-id">ID: <span id="displayGameId">---</span></div>
+        </div>
+        <button class="btn-menu" onclick="openSessionModal()">🗂️ 戰局選單</button>
+    </div>
 
     <div class="section-card">
         <div class="settings-grid">
             <div>
                 <label>底 (Base)</label>
-                <input type="number" id="baseValue" value="30" inputmode="numeric">
+                <input type="number" id="baseValue" value="30" inputmode="numeric" onchange="autoSave()">
             </div>
             <div>
                 <label>台 (Tai)</label>
-                <input type="number" id="taiValue" value="10" inputmode="numeric">
+                <input type="number" id="taiValue" value="10" inputmode="numeric" onchange="autoSave()">
             </div>
         </div>
     </div>
 
-    <div style="text-align:center; margin-bottom:5px; color:#666; font-size:0.9em;">👇 點擊名字左上「莊」設莊家，名字直接點擊可修改</div>
+    <div style="text-align:center; margin-bottom:5px; color:#666; font-size:0.9em;">👇 點擊名字左上「莊」設莊家</div>
     <div class="players-grid" id="playersContainer"></div>
 
     <div class="section-card">
@@ -197,12 +193,12 @@
             </div>
 
             <div>
-                <label>台數 (輸入牌型台數)</label>
+                <label>台數</label>
                 <div style="display: flex; gap: 5px;">
                     <button class="btn-adjust" onclick="modifyTai(-1)">-</button>
                     <input type="number" id="taiCount" placeholder="0" inputmode="numeric" style="flex: 1; text-align:center;">
                     <button class="btn-adjust" onclick="modifyTai(1)">+</button>
-                    <button class="btn-type" style="flex:0 0 auto; width:50px; background:#607D8B; color:white; border:none; padding:0;" onclick="openModal()">📖</button>
+                    <button class="btn-type" style="flex:0 0 auto; width:50px; background:#607D8B; color:white; border:none; padding:0;" onclick="openTaiModal()">📖</button>
                 </div>
                 <small style="color:#d32f2f; font-weight:bold; display:block; margin-top:5px;" id="dealerRuleText"></small>
             </div>
@@ -216,11 +212,30 @@
         <ul class="history-list" id="historyList"></ul>
     </div>
 
+    <div id="sessionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeSessionModal()">&times;</span>
+            <h2 style="margin-top:0;">戰局管理</h2>
+            
+            <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                <label>當前戰局名稱</label>
+                <input type="text" id="gameNameInput" placeholder="例如：週五通宵場" onchange="updateGameName()">
+                <div style="margin-top: 10px; display:flex; gap:10px;">
+                    <button class="btn-type active" onclick="startNewGame()">開新戰局</button>
+                    <button class="btn-type" onclick="manualSave()">手動儲存</button>
+                </div>
+            </div>
+
+            <label>已儲存的戰局 (點擊載入)</label>
+            <ul class="session-list" id="sessionList">
+                </ul>
+        </div>
+    </div>
+
     <div id="taiModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <span class="close-btn" onclick="closeTaiModal()">&times;</span>
             <h2 style="margin-top:0;">台數表</h2>
-            <p style="font-size:0.9em; color:#666;">點擊台數可自動加入計算</p>
             <table class="tai-table">
                 <tr class="category-header"><td colspan="2">基本</td></tr>
                 <tr onclick="addTaiToInput(1)"><td>自摸 / 門清</td><td><span class="tai-badge">1</span></td></tr>
@@ -236,43 +251,217 @@
     </div>
 
 <script>
-    // 資料初始
+    // --- 全域變數 ---
     let players = [ { name: "東", score: 0 }, { name: "南", score: 0 }, { name: "西", score: 0 }, { name: "北", score: 0 } ];
     let dealerIndex = 0; 
     let lienCount = 0;   
     let currentWinType = 'discard';
+    let historyLogs = []; // 用來存 log 文字
 
+    // 戰局資訊
+    let gameId = "";
+    let gameName = "未命名戰局";
+
+    // --- 初始化 ---
     function init() {
+        // 檢查是否有上一次的戰局
+        const lastGameId = localStorage.getItem('mj_last_game_id');
+        if (lastGameId && localStorage.getItem('mj_save_' + lastGameId)) {
+            loadGame(lastGameId);
+        } else {
+            startNewGame();
+        }
+
         renderPlayers();
         updateSelectOptions();
-        window.onclick = function(e) { if(e.target == document.getElementById('taiModal')) closeModal(); }
-        updateDealerRuleText(); 
+        updateDealerRuleText();
+        
+        // Modal 點擊外部關閉
+        window.onclick = function(e) { 
+            if(e.target == document.getElementById('taiModal')) closeTaiModal(); 
+            if(e.target == document.getElementById('sessionModal')) closeSessionModal(); 
+        }
     }
 
-    // 設定莊家
+    // --- 戰局管理系統 (Session System) ---
+
+    function startNewGame() {
+        if(confirm("確定要開啟新戰局嗎？目前的進度若未儲存將會被覆蓋(若已自動儲存則在列表內)。")) {
+            gameId = "GAME-" + Date.now().toString().slice(-6); // 產生簡易 Seed
+            gameName = "未命名戰局";
+            players = [ { name: "東", score: 0 }, { name: "南", score: 0 }, { name: "西", score: 0 }, { name: "北", score: 0 } ];
+            dealerIndex = 0;
+            lienCount = 0;
+            historyLogs = [];
+            
+            document.getElementById('historyList').innerHTML = "";
+            document.getElementById('gameNameInput').value = "";
+            
+            updateUIInfo();
+            renderPlayers();
+            autoSave(); // 初始儲存
+            closeSessionModal();
+        }
+    }
+
+    function updateGameName() {
+        const input = document.getElementById('gameNameInput').value;
+        if(input.trim()) {
+            gameName = input;
+            updateUIInfo();
+            autoSave();
+        }
+    }
+
+    function updateUIInfo() {
+        document.getElementById('displayGameName').innerText = gameName;
+        document.getElementById('displayGameId').innerText = gameId;
+    }
+
+    // 自動儲存到 LocalStorage
+    function autoSave() {
+        const gameState = {
+            id: gameId,
+            name: gameName,
+            timestamp: Date.now(),
+            base: document.getElementById('baseValue').value,
+            tai: document.getElementById('taiValue').value,
+            players: players,
+            dealerIndex: dealerIndex,
+            lienCount: lienCount,
+            logs: historyLogs
+        };
+        
+        // 存個別戰局
+        localStorage.setItem('mj_save_' + gameId, JSON.stringify(gameState));
+        // 記住最後開啟的 ID
+        localStorage.setItem('mj_last_game_id', gameId);
+    }
+
+    function manualSave() {
+        autoSave();
+        alert("儲存成功！");
+    }
+
+    function loadGame(id) {
+        const data = localStorage.getItem('mj_save_' + id);
+        if(!data) return;
+
+        const state = JSON.parse(data);
+        gameId = state.id;
+        gameName = state.name;
+        players = state.players;
+        dealerIndex = state.dealerIndex;
+        lienCount = state.lienCount;
+        historyLogs = state.logs || [];
+
+        document.getElementById('baseValue').value = state.base;
+        document.getElementById('taiValue').value = state.tai;
+        document.getElementById('gameNameInput').value = state.name;
+
+        // 恢復 Logs
+        const list = document.getElementById('historyList');
+        list.innerHTML = "";
+        historyLogs.forEach(log => {
+            const item = document.createElement('li');
+            item.className = 'history-item';
+            item.innerHTML = log;
+            list.appendChild(item);
+        });
+
+        updateUIInfo();
+        renderPlayers();
+        updateSelectOptions();
+        updateDealerRuleText();
+        localStorage.setItem('mj_last_game_id', gameId);
+        
+        closeSessionModal();
+    }
+
+    function deleteGame(id) {
+        if(confirm("確定要刪除此紀錄嗎？")) {
+            localStorage.removeItem('mj_save_' + id);
+            renderSessionList(); // 刷新列表
+        }
+    }
+
+    function renderSessionList() {
+        const list = document.getElementById('sessionList');
+        list.innerHTML = "";
+        
+        // 搜尋所有開頭為 mj_save_ 的 key
+        let saves = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('mj_save_')) {
+                try {
+                    saves.push(JSON.parse(localStorage.getItem(key)));
+                } catch(e) {}
+            }
+        }
+
+        // 依時間排序 (新到舊)
+        saves.sort((a, b) => b.timestamp - a.timestamp);
+
+        if(saves.length === 0) {
+            list.innerHTML = "<li style='color:#999; text-align:center;'>尚無紀錄</li>";
+            return;
+        }
+
+        saves.forEach(save => {
+            const dateStr = new Date(save.timestamp).toLocaleString();
+            const activeClass = (save.id === gameId) ? "color:var(--primary-color);" : "";
+            const item = document.createElement('li');
+            item.className = 'session-item';
+            item.innerHTML = `
+                <div class="session-info">
+                    <span class="session-title" style="${activeClass}">${save.name || '未命名'}</span>
+                    <span class="session-date">${dateStr} (ID:${save.id})</span>
+                </div>
+                <div>
+                    <button class="btn-load" onclick="loadGame('${save.id}')">讀取</button>
+                    <button class="btn-del" onclick="deleteGame('${save.id}')">刪</button>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    // --- Modal 控制 ---
+    function openSessionModal() { 
+        document.getElementById('sessionModal').style.display = "block"; 
+        renderSessionList();
+    }
+    function closeSessionModal() { document.getElementById('sessionModal').style.display = "none"; }
+    
+    function openTaiModal() { document.getElementById('taiModal').style.display = "block"; }
+    function closeTaiModal() { document.getElementById('taiModal').style.display = "none"; }
+
+    // --- 遊戲邏輯 ---
+
     function setDealer(index) {
         if (dealerIndex !== index) {
             dealerIndex = index;
             lienCount = 0;
             renderPlayers();
             updateSelectOptions();
+            autoSave();
         }
     }
 
-    // 調整連莊數
     function modifyLien(delta) {
         lienCount += delta;
         if (lienCount < 0) lienCount = 0;
         renderPlayers();
         updateDealerRuleText();
+        autoSave();
     }
 
-    // 新增：調整台數 (+/-)
     function modifyTai(delta) {
         const input = document.getElementById('taiCount');
         let val = parseInt(input.value) || 0;
         val += delta;
-        if(val < 0) val = 0; // 不允許負台數
+        if(val < 0) val = 0;
         input.value = val;
     }
 
@@ -309,6 +498,7 @@
     function updateName(index, newName) { 
         players[index].name = newName; 
         updateSelectOptions();
+        autoSave();
     }
 
     function updateSelectOptions() {
@@ -360,113 +550,90 @@
         
         if (isNaN(inputTai)) { alert("請輸入台數！"); return; }
 
-        let logMessage = "";
+        let logText = "";
+        let logHtml = "";
         let totalWinAmount = 0;
-        let confirmMsg = ""; // 用於彈出視窗的訊息
+        let confirmMsg = "";
         
-        // 莊家台數 = 1 + (2 * 連莊數)
         const dealerExtraTai = 1 + (2 * lienCount);
 
-        // 計算單筆交易金額
         const calculatePayment = (tai, isDealerInvolved) => {
             let finalTai = isDealerInvolved ? (tai + dealerExtraTai) : tai;
             return base + (finalTai * taiValue);
         };
 
         if (currentWinType === 'discard') {
-            // --- 胡牌 (放槍) ---
             const loserIdx = parseInt(document.getElementById('loserSelect').value);
             if (winnerIdx === loserIdx) { alert("贏家與輸家不能同一人"); return; }
 
             let isDealerInvolved = (winnerIdx === dealerIndex || loserIdx === dealerIndex);
             let amount = calculatePayment(inputTai, isDealerInvolved);
 
-            // 準備確認訊息
-            confirmMsg = `【胡牌結算】\n\n`;
-            confirmMsg += `贏家：${players[winnerIdx].name}\n`;
-            confirmMsg += `放槍：${players[loserIdx].name}\n`;
-            confirmMsg += `台數：${inputTai} 台`;
-            if (isDealerInvolved) confirmMsg += ` (+莊連${lienCount} / 共${inputTai + dealerExtraTai}台)`;
+            confirmMsg = `【胡牌結算】\n\n贏家：${players[winnerIdx].name}\n放槍：${players[loserIdx].name}\n台數：${inputTai} 台`;
+            if (isDealerInvolved) confirmMsg += ` (+莊連${lienCount})`;
             confirmMsg += `\n\n💰 金額：$${amount}`;
             
-            // 彈出確認視窗
-            if(!confirm(confirmMsg)) return; // 使用者按取消
+            if(!confirm(confirmMsg)) return;
 
-            // 更新分數
             players[winnerIdx].score += amount;
             players[loserIdx].score -= amount;
 
             let extraText = isDealerInvolved ? ` (含莊連${lienCount})` : "";
-            logMessage = `${players[winnerIdx].name} 胡 ${players[loserIdx].name} - ${inputTai}台${extraText}: ${amount}`;
+            logText = `${players[winnerIdx].name} 胡 ${players[loserIdx].name} - ${inputTai}台${extraText}: ${amount}`;
 
         } else {
-            // --- 自摸 ---
             let detailLog = [];
-            
-            // 準備確認訊息
-            confirmMsg = `【自摸結算】\n\n`;
-            confirmMsg += `贏家：${players[winnerIdx].name}\n`;
-            confirmMsg += `台數：${inputTai} 台\n\n`;
+            confirmMsg = `【自摸結算】\n\n贏家：${players[winnerIdx].name}\n台數：${inputTai} 台\n\n`;
 
-            // 預先計算以顯示在確認視窗
             let tempTotalWin = 0;
             players.forEach((p, loserIdx) => {
                 if (loserIdx === winnerIdx) return;
                 let isDealerInvolved = (winnerIdx === dealerIndex || loserIdx === dealerIndex);
                 let amount = calculatePayment(inputTai, isDealerInvolved);
                 tempTotalWin += amount;
-                
                 confirmMsg += `${p.name} 付：$${amount}`;
                 if (isDealerInvolved) confirmMsg += ` (含莊)`;
                 confirmMsg += `\n`;
             });
             confirmMsg += `\n💰 總收：$${tempTotalWin}`;
 
-            // 彈出確認視窗
-            if(!confirm(confirmMsg)) return; // 使用者按取消
+            if(!confirm(confirmMsg)) return;
 
-            // 確認後正式執行扣款
             players.forEach((p, loserIdx) => {
                 if (loserIdx === winnerIdx) return;
-
                 let isDealerInvolved = (winnerIdx === dealerIndex || loserIdx === dealerIndex);
                 let amount = calculatePayment(inputTai, isDealerInvolved);
-                
                 p.score -= amount;
                 totalWinAmount += amount;
-                
                 if(isDealerInvolved) detailLog.push("莊");
             });
 
             players[winnerIdx].score += totalWinAmount;
-            
             let extraText = (detailLog.length > 0) ? ` (含莊連${lienCount})` : "";
-            logMessage = `${players[winnerIdx].name} 自摸 ${inputTai}台${extraText}, 總收: ${totalWinAmount}`;
+            logText = `${players[winnerIdx].name} 自摸 ${inputTai}台${extraText}, 總收: ${totalWinAmount}`;
         }
 
-        // 觸覺回饋
-        if (navigator.vibrate) {
-            navigator.vibrate(50);
-        }
+        if (navigator.vibrate) navigator.vibrate(50);
 
         renderPlayers();
-        addLog(logMessage);
-        document.getElementById('taiCount').value = '';
-    }
-
-    // Modal & Log functions
-    function openModal() { document.getElementById('taiModal').style.display = "block"; }
-    function closeModal() { document.getElementById('taiModal').style.display = "none"; }
-    function addTaiToInput(t) { 
-        let inp = document.getElementById('taiCount'); 
-        inp.value = (parseInt(inp.value)||0) + t; 
-    }
-    function addLog(msg) {
+        
+        // 紀錄 Log
+        logHtml = `<span>${logText}</span> <span class="history-details">${new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'})}</span>`;
+        historyLogs.unshift(logHtml); // 存入陣列
+        
         const list = document.getElementById('historyList');
         const item = document.createElement('li');
         item.className = 'history-item';
-        item.innerHTML = `<span>${msg}</span> <span class="history-details">${new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'})}</span>`;
+        item.innerHTML = logHtml;
         list.insertBefore(item, list.firstChild);
+
+        document.getElementById('taiCount').value = '';
+        autoSave(); // 結算後自動存檔
+    }
+
+    function addTaiToInput(t) { 
+        let inp = document.getElementById('taiCount'); 
+        inp.value = (parseInt(inp.value)||0) + t; 
     }
 
     init();
